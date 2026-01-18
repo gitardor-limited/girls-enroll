@@ -588,20 +588,6 @@ function renderForm(email, firstName, lastName){
   
   // Show logout button
   document.getElementById("logout").style.display="block";
-  
-  container.innerHTML = `
-    <form id="enroll-form" novalidate>
-      <div class="form-group">
-        <label for="prefix">Prefix</label>
-        <select id="prefix" name="Prefix">
-          <option value="">Select Prefix</option>
-          <option value="Mr.">Mr.</option>
-          <option value="Mrs.">Mrs.</option>
-          <option value="Miss.">Miss.</option>
-          <option value="Ms.">Ms.</option>
-        </select>
-        <small class="error-message" id="prefix-error" style="display:none;"></small>
-      </div>
       
       <div class="form-group">
         <label for="firstName">First Name</label>
