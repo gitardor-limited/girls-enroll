@@ -550,7 +550,7 @@ async function renderCourseEnrollment(email, data) {
       const convertedAmount = convertCurrency(basePrice, baseCurrencyCode, selectedCurrency);
 
       FlutterwaveCheckout({
-        public_key: "FLWPUBK-94d902aff72af3143763e961a5d612f0-X",
+        public_key: "FLWPUBK_TEST-9b8ae83b4b8c8d3b5b8509fd92033f11-X",
         tx_ref: "TX_REF_" + Date.now(),
         amount: convertedAmount,
         currency: selectedCurrency,
