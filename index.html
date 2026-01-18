@@ -592,18 +592,6 @@ function renderForm(email, firstName, lastName){
   container.innerHTML = `
     <form id="enroll-form" novalidate>
       <div class="form-group">
-        <label for="prefix">Prefix</label>
-        <select id="prefix" name="Prefix">
-          <option value="">Select Prefix</option>
-          <option value="Mr.">Mr.</option>
-          <option value="Mrs.">Mrs.</option>
-          <option value="Miss.">Miss.</option>
-          <option value="Ms.">Ms.</option>
-        </select>
-        <small class="error-message" id="prefix-error" style="display:none;"></small>
-      </div>
-      
-      <div class="form-group">
         <label for="firstName">First Name</label>
         <input type="text" id="firstName" name="First Name" placeholder="First Name" value="${firstName || ""}" />
         <small class="error-message" id="firstName-error" style="display:none;"></small>
@@ -638,20 +626,29 @@ function renderForm(email, firstName, lastName){
       </div>
 
       <div class="form-group">
-        <label for="relation">Relation to Child</label>
-        <select id="relation" name="Relation to Child">
-          <option value="">Select…</option>
-          <option value="Mother">Mother</option>
-          <option value="Father">Father</option>
-          <option value="Guardian">Guardian</option>
-          <option value="Others">Others</option>
-        </select>
-        <small class="error-message" id="relation-error" style="display:none;"></small>
-      </div>
-
-      <div class="form-group" id="relationOtherGroup" style="display:none;">
-        <input type="text" id="relationOther" name="Relation to Child (Other)" placeholder="Specify relation" aria-label="Other relation specification" />
-        <small class="error-message" id="relationOther-error" style="display:none;"></small>
+        <label for="dobMonth">Date of Birth</label>
+        <div style="display:flex;gap:6px">
+          <select id="dobMonth" style="flex:1;">
+            <option value="">Month</option>
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+          </select>
+          <select id="dobDay" style="flex:1;">
+            <option value="">Day</option>
+          </select>
+        </div>
+        <small class="error-message" id="dobMonth-error" style="display:none;"></small>
+        <input type="hidden" name="Date of Birth" id="dobFull">
       </div>
 
       <button type="submit">Submit Enrollment</button>
@@ -780,6 +777,68 @@ function renderForm(email, firstName, lastName){
     if (waCode.value) validateWA();
   };
 
+  /* DATE OF BIRTH LOGIC */
+  const dobMonth = document.getElementById("dobMonth");
+  const dobDay = document.getElementById("dobDay");
+  const dobFull = document.getElementById("dobFull");
+
+  // Days in each month
+  const daysInMonth = {
+    "January": 31,
+    "February": 29, // Account for leap years
+    "March": 31,
+    "April": 30,
+    "May": 31,
+    "June": 30,
+    "July": 31,
+    "August": 31,
+    "September": 30,
+    "October": 31,
+    "November": 30,
+    "December": 31
+  };
+
+  // Update day dropdown when month changes
+  dobMonth.addEventListener("change", function() {
+    clearError("dobMonth");
+    const selectedMonth = this.value;
+    
+    // Clear current day options
+    dobDay.innerHTML = '<option value="">Day</option>';
+    
+    if (selectedMonth) {
+      const maxDays = daysInMonth[selectedMonth];
+      
+      // Populate day dropdown
+      for (let i = 1; i <= maxDays; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        dobDay.appendChild(option);
+      }
+      
+      dobDay.disabled = false;
+    } else {
+      dobDay.disabled = true;
+    }
+    
+    // Update hidden field
+    updateDOB();
+  });
+
+  dobDay.addEventListener("change", function() {
+    clearError("dobMonth");
+    updateDOB();
+  });
+
+  function updateDOB() {
+    if (dobMonth.value && dobDay.value) {
+      dobFull.value = `${dobMonth.value} ${dobDay.value}`;
+    } else {
+      dobFull.value = "";
+    }
+  }
+
   const countries = [
     "Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda",
     "Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain",
@@ -893,32 +952,18 @@ function renderForm(email, firstName, lastName){
   });
 
   // Clear errors on input
-  document.getElementById("prefix").addEventListener("change", () => clearError("prefix"));
   document.getElementById("firstName").addEventListener("input", () => clearError("firstName"));
   document.getElementById("lastName").addEventListener("input", () => clearError("lastName"));
-  document.getElementById("relation").addEventListener("change", () => {
-    clearError("relation");
-    handleRelationChange();
-  });
-  document.getElementById("relationOther").addEventListener("input", () => clearError("relationOther"));
   
   const form = document.getElementById("enroll-form");
   form.onsubmit = (e) => {
     e.preventDefault();
     
     // Clear all previous errors
-    ["prefix", "firstName", "lastName", "waNumber", "countrySearch", "relation", "relationOther"].forEach(clearError);
+    ["firstName", "lastName", "waNumber", "countrySearch", "dobMonth"].forEach(clearError);
     
     let isValid = true;
     let firstErrorField = null;
-
-    // Validate Prefix
-    const prefix = document.getElementById("prefix");
-    if (!prefix.value) {
-      showError("prefix", "Please select a prefix");
-      isValid = false;
-      if (!firstErrorField) firstErrorField = prefix;
-    }
 
     // Validate First Name
     const firstName = document.getElementById("firstName");
@@ -950,20 +995,13 @@ function renderForm(email, firstName, lastName){
       if (!firstErrorField) firstErrorField = countrySearch;
     }
 
-    // Validate Relation
-    const relation = document.getElementById("relation");
-    if (!relation.value) {
-      showError("relation", "Please select your relation to the child");
+    // Validate Date of Birth
+    const dobMonth = document.getElementById("dobMonth");
+    const dobDay = document.getElementById("dobDay");
+    if (!dobMonth.value || !dobDay.value) {
+      showError("dobMonth", "Please select your date of birth");
       isValid = false;
-      if (!firstErrorField) firstErrorField = relation;
-    }
-
-    // Validate Relation Other
-    const relationOther = document.getElementById("relationOther");
-    if (relation.value === "Others" && !relationOther.value.trim()) {
-      showError("relationOther", "Please specify your relation");
-      isValid = false;
-      if (!firstErrorField) firstErrorField = relationOther;
+      if (!firstErrorField) firstErrorField = dobMonth;
     }
 
     // Focus on first error field
@@ -977,12 +1015,6 @@ function renderForm(email, firstName, lastName){
     
     const data = {};
     new FormData(form).forEach((v,k)=>data[k]=v);
-
-    // If "Others" is selected, override with typed value
-    if (data["Relation to Child"] === "Others") {
-      data["Relation to Child"] = data["Relation to Child (Other)"] || "Others";
-      delete data["Relation to Child (Other)"];
-    }
     
     // Disable submit button to prevent double submission
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -1027,32 +1059,6 @@ function renderForm(email, firstName, lastName){
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit Enrollment";
     });
-  }
-}
-
-/* ================= RELATION CHANGE HANDLER ================= */
-function handleRelationChange() {
-  const select = document.getElementById("relation");
-  const otherGroup = document.getElementById("relationOtherGroup");
-  const otherInput = document.getElementById("relationOther");
-
-  if (!select || !otherGroup || !otherInput) return;
-
-  if (select.value === "Others") {
-    otherGroup.style.display = "block";
-  } else {
-    otherGroup.style.display = "none";
-    otherInput.value = "";
-    clearError("relationOther");
-  }
-}
-
-function clearError(fieldId) {
-  const field = document.getElementById(fieldId);
-  const errorEl = document.getElementById(fieldId + "-error");
-  if (field && errorEl) {
-    field.classList.remove("error");
-    errorEl.style.display = "none";
   }
 }
 
