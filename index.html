@@ -550,7 +550,7 @@ async function renderCourseEnrollment(email, data) {
       const convertedAmount = convertCurrency(basePrice, baseCurrencyCode, selectedCurrency);
 
       FlutterwaveCheckout({
-        public_key: "FLWPUBK_TEST-9b8ae83b4b8c8d3b5b8509fd92033f11-X",
+        public_key: "FLWPUBK-94d902aff72af3143763e961a5d612f0-X",
         tx_ref: "TX_REF_" + Date.now(),
         amount: convertedAmount,
         currency: selectedCurrency,
@@ -565,6 +565,11 @@ async function renderCourseEnrollment(email, data) {
           class_code: classCode,
           original_price: basePrice,
           original_currency: baseCurrencyCode
+        },
+        customizations: {
+          title: "G.I.R.Ls.",
+          description: "You are beautiful the way you are.",
+          logo: "http://images.getitrightladies.com/G.I.R.L.png"
         },
         callback: function (data) {
           window.location.href = "https://www.getitrightladies.com/enroll/payment-success";
